@@ -1,3 +1,4 @@
+import { deletions } from "./glabolVariable";
 import { Fiber, VNode } from "./interface";
 
 export function reconcileChildren(wipFiber: Fiber, elements: VNode[]) {
@@ -11,11 +12,11 @@ export function reconcileChildren(wipFiber: Fiber, elements: VNode[]) {
     const sameType = oldFiber && element && oldFiber.type === element.type;
     if (sameType) {
       newFiber = {
-        type: oldFiber.type,
+        type: oldFiber!.type,
         props: element.props,
-        dom: oldFiber.dom,
+        dom: oldFiber!.dom,
         parent: wipFiber,
-        alternate: oldFiber,
+        alternate: oldFiber!,
         effectTag: 'UPDATE',
       }
     }
@@ -29,7 +30,7 @@ export function reconcileChildren(wipFiber: Fiber, elements: VNode[]) {
         effectTag: 'PLACEMENT'
       }
     }
-    if (oldFiber & !sameType) {
+    if (oldFiber && !sameType) {
       oldFiber.effectTag = 'DELETION';
       deletions.push(oldFiber);
     }
@@ -37,9 +38,9 @@ export function reconcileChildren(wipFiber: Fiber, elements: VNode[]) {
       oldFiber = oldFiber.sibling;
     }
     if (index === 0) {
-      wipFiber.child = newFiber;
+      wipFiber.child = newFiber!;
     } else if (element) {
-      prevSibling.sibling = newFiber;
+      prevSibling!.sibling = newFiber!;
     }
 
     prevSibling = newFiber;

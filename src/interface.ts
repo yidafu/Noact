@@ -1,23 +1,32 @@
+type FiberType = keyof HTMLElementTagNameMap | Function | 'TEXT_ELEMENT'
+
+type VNodeType = FiberType;
 
 export interface Fiber {
-  type: string | Function;
-  props: Record<string, any>;
+  type: FiberType;
+  props: IVNodeProps;
   dom: HTMLElement | Text | null;
-  parent: Fiber;
+  parent?: Fiber;
   child?: Fiber;
   sibling?: Fiber;
   alternate: Fiber | null;
-  effectTag: 'UPDATE' | 'PLACEMENT' | 'DELETION';
+  effectTag?: 'UPDATE' | 'PLACEMENT' | 'DELETION';
 
-  hooks: { state: any, queue: Function[] };
+  hooks?: FiberHook[];
+}
+
+export interface FiberHook {
+  state: any;
+  queue: Function[];
 }
 
 export interface VNode {
-  type: string;
+  type: VNodeType;
   props: IVNodeProps;
 }
 
-export interface IVNodeProps {
-  children: VNode;
-  [key: string]: string | Function;
-}
+export type IVNodeProps = {
+  [key in keyof HTMLElement | keyof Text]: string | EventListenerOrEventListenerObject;
+} & {
+  children: VNode[];
+};

@@ -1,4 +1,6 @@
-export function createElement(type, props, ...children) {
+import { IVNodeProps, VNode } from "./interface"
+
+export function createElement(type: String, props: IVNodeProps, ...children: VNode[]) {
   return {
     type,
     props: {

@@ -1,18 +1,18 @@
 import { commitRoot, updateDom } from "./commitPhases";
 import { currentRoot, hookIndex, nextUnitOfWork, resetDeletion, setHookIndex, setNextNunitOfWork as setNextUnitOfWork, setWipFiber, setWipRoot, wipFiber, wipRoot } from "./glabolVariable";
-import { Fiber, VNode } from "./interface";
+import { Fiber, FiberHook, IVNodeProps, VNode } from "./interface";
 import { reconcileChildren } from "./reconcile";
-import { isEvent, isProperty } from "./utils";
 
 
 function createDom(fiber: Fiber) {
-  const dom = fiber.type === 'TEXT_ELEMENT'
-  ? document.createTextNode("")
-  : document.createElement(fiber.type);
-
-  updateDom(dom, {}, fiber.props);
-
-  return dom;
+  if (typeof fiber.type !== 'function') {
+    const dom = fiber.type === 'TEXT_ELEMENT'
+      ? document.createTextNode("")
+      : document.createElement(fiber.type);
+    updateDom(dom, {} as IVNodeProps, fiber.props);
+    return dom;
+  }
+  throw new TypeError('Fiber.type must be a HTML Tag or String');
 }
 
 
@@ -65,13 +65,14 @@ function performUnitOfWork(fiber: Fiber) {
     }
     nextFiber  = nextFiber.parent;
   }
+  return null;
 }
 
 function updateFunctionComponent(fiber: Fiber) {
   setWipFiber(fiber);
   setHookIndex(0);
-  wipFiber.hooks = []
-  const children = [fiber.type(fiber.props)];
+  wipFiber!.hooks = [] as FiberHook[]
+  const children = [(fiber.type as Function)(fiber.props)];
   reconcileChildren(fiber, children);
 }
 
@@ -84,9 +85,9 @@ function updateHostComponent(fiber: Fiber) {
 }
 
 
-export function useState(initail) {
-  const oldHook = wipFiber?.alternate?.hooks[hookIndex];
-  const hook = {
+export function useState(initail: any) {
+  const oldHook = wipFiber?.alternate?.hooks?.[hookIndex];
+  const hook: FiberHook = {
     state: oldHook ? oldHook.state : initail,
     queue: [],
   }
@@ -97,14 +98,15 @@ export function useState(initail) {
   const setState = (action: Function) => {
     hook.queue.push(action);
     setWipRoot({
-      dom: currentRoot?.dom,
-      props: currentRoot?.props,
+      type: currentRoot!.type,
+      dom: currentRoot!.dom,
+      props: currentRoot!.props,
       alternate: currentRoot,
     });
     setNextUnitOfWork(wipRoot);
     resetDeletion();
   }
-  wipFiber?.hooks.push(hook);
+  wipFiber?.hooks?.push(hook);
   setHookIndex(hookIndex + 1);
   return [hook.state, setState];
 }
